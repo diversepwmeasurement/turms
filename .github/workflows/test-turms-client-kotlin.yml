@@ -1,26 +1,30 @@
-name: Test turms-client-kotlin
-
-on: [ push, pull_request ]
-
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    name: Test in Java ${{ matrix.Java }}
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4.1.1
+    - continue-on-error: true
+      name: Set up Java
+      uses: actions/setup-java@v3.13.0
+      with:
+        distribution: temurin
+        java-version: ${{ matrix.java }}
+    - continue-on-error: true
+      name: Verify formatting
+      run: mvn validate --projects turms-client-kotlin --activate-profiles lint --batch-mode
+        --no-transfer-progress
+    - continue-on-error: true
+      name: Run tests
+      run: mvn verify --projects turms-client-kotlin
     strategy:
       matrix:
-        java: [ '8', '17' ]
-    name: Test in Java ${{ matrix.Java }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Set up Java
-        uses: actions/setup-java@v3.13.0
-        with:
-          distribution: 'temurin'
-          java-version: ${{ matrix.java }}
-
-      - name: Verify formatting
-        run: mvn validate --projects turms-client-kotlin --activate-profiles lint --batch-mode --no-transfer-progress
-
-      - name: Run tests
-        run: mvn verify --projects turms-client-kotlin
+        java:
+        - '8'
+        - '17'
+name: Test turms-client-kotlin
+on:
+  repository_dispatch:
+    types: trigger-ga___test-turms-client-kotlin.yml

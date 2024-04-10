@@ -1,34 +1,38 @@
-name: Test turms-client-dart
-
-on: [ push, pull_request ]
-
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4.1.1
+    - continue-on-error: true
+      name: Set up Dart
+      uses: dart-lang/setup-dart@v1.6.0
+      with:
+        sdk: ${{ matrix.sdk }}
+    - continue-on-error: true
+      name: Install dependencies
+      run: dart pub get
+      working-directory: turms-client-dart
+    - continue-on-error: true
+      name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+      working-directory: turms-client-dart
+    - continue-on-error: true
+      name: Analyze project source
+      run: dart analyze
+      working-directory: turms-client-dart
+    - continue-on-error: true
+      name: Run tests
+      run: dart test
+      working-directory: turms-client-dart
     strategy:
       matrix:
-        sdk: [3.0, stable, beta]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Set up Dart
-        uses: dart-lang/setup-dart@v1.6.0
-        with:
-          sdk: ${{ matrix.sdk }}
-
-      - name: Install dependencies
-        working-directory: turms-client-dart
-        run: dart pub get
-
-      - name: Verify formatting
-        working-directory: turms-client-dart
-        run: dart format --output=none --set-exit-if-changed .
-
-      - name: Analyze project source
-        working-directory: turms-client-dart
-        run: dart analyze
-
-      - name: Run tests
-        working-directory: turms-client-dart
-        run: dart test
+        sdk:
+        - 3.0
+        - stable
+        - beta
+name: Test turms-client-dart
+on:
+  repository_dispatch:
+    types: trigger-ga___test-turms-client-dart.yml

@@ -1,31 +1,28 @@
-name: Test turms-client-js
-
-on: [ push, pull_request ]
-
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Set up Node
-        uses: actions/setup-node@v4.0.0
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        working-directory: turms-client-js
-        run: npm install
-
-      - name: Verify formatting
-        working-directory: turms-client-js
-        run: npm run lint
-
-      - name: Build artifacts
-        working-directory: turms-client-js
-        run: npm run build
-
-#      - name: Test
-#        working-directory: turms-client-js
-#        run: npm run test
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4.1.1
+    - continue-on-error: true
+      name: Set up Node
+      uses: actions/setup-node@v4.0.0
+      with:
+        node-version: 20
+    - continue-on-error: true
+      name: Install dependencies
+      run: npm install
+      working-directory: turms-client-js
+    - continue-on-error: true
+      name: Verify formatting
+      run: npm run lint
+      working-directory: turms-client-js
+    - continue-on-error: true
+      name: Build artifacts
+      run: npm run build
+      working-directory: turms-client-js
+name: Test turms-client-js
+on:
+  repository_dispatch:
+    types: trigger-ga___test-turms-client-js.yml

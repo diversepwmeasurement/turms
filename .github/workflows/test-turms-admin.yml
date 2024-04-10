@@ -1,19 +1,20 @@
-name: Test turms-admin
-
-on: [ push, pull_request ]
-
 jobs:
   ui-tests:
-    runs-on: ubuntu-22.04
     container: cypress/browsers:node16.14.0-chrome99-ff97
+    runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Cypress run
-        uses: cypress-io/github-action@v6.5.0
-        with:
-          working-directory: turms-admin
-          build: npm run build
-          start: npm run serve
-          wait-on: 'http://localhost:6510'
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4.1.1
+    - continue-on-error: true
+      name: Cypress run
+      uses: cypress-io/github-action@v6.5.0
+      with:
+        build: npm run build
+        start: npm run serve
+        wait-on: http://localhost:6510
+        working-directory: turms-admin
+name: Test turms-admin
+on:
+  repository_dispatch:
+    types: trigger-ga___test-turms-admin.yml

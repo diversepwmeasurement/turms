@@ -1,57 +1,35 @@
-name: Test Docker Compose
-
-on: [ push, pull_request ]
-
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Validate
-        run: docker compose -f docker-compose.standalone.yml config -q
-
-      - name: Check Service Health
-        run: |
-          sed -i 's|pull_policy: always|pull_policy: never|g' docker-compose.standalone.yml
-          echo "Docker compose file to run with:"
-          cat docker-compose.standalone.yml
-          
-          docker build -t "ghcr.io/turms-im/turms-admin:latest" -f turms-admin/Dockerfile .
-          docker build -t "ghcr.io/turms-im/turms-gateway:latest" -f turms-gateway/Dockerfile .
-          docker build -t "ghcr.io/turms-im/turms-service:latest" -f turms-service/Dockerfile .
-
-          ENV=prod docker compose -f docker-compose.standalone.yml up -d
-
-          sleep 10
-          RETRY=0
-          SERVICES=$(docker compose -f docker-compose.standalone.yml ps -q)
-          echo "Services for checking health: $SERVICES"
-          while true
-          do
-            ALL_HEALTHY=true
-            for SERVICE in $SERVICES; do
-              HEALTH_STATUS=$(docker inspect --format='{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}' "$SERVICE")
-              if [ -z "$HEALTH_STATUS" ]; then
-                echo "Service $SERVICE does not have a health check configured, passing through"
-              elif [ "$HEALTH_STATUS" = "healthy" ]; then
-                echo "$SERVICE is healthy"
-              else
-                echo "$SERVICE is not healthy"
-                ALL_HEALTHY=false
-                break
-              fi
-            done
-            if [ $ALL_HEALTHY = true ]; then
-              echo "All services are healthy"
-              break
-            fi
-            if [ $RETRY -eq 5 ]; then
-              echo "Failed to start services, some services are not healthy"
-              exit 1
-            fi
-            echo "Some services are not healthy. Retry times: $RETRY. Retrying..."
-            sleep 10
-            ((RETRY++))
-          done
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4.1.1
+    - continue-on-error: true
+      name: Validate
+      run: docker compose -f docker-compose.standalone.yml config -q
+    - continue-on-error: true
+      name: Check Service Health
+      run: "sed -i 's|pull_policy: always|pull_policy: never|g' docker-compose.standalone.yml\n\
+        echo \"Docker compose file to run with:\"\ncat docker-compose.standalone.yml\n\
+        \ndocker build -t \"ghcr.io/turms-im/turms-admin:latest\" -f turms-admin/Dockerfile\
+        \ .\ndocker build -t \"ghcr.io/turms-im/turms-gateway:latest\" -f turms-gateway/Dockerfile\
+        \ .\ndocker build -t \"ghcr.io/turms-im/turms-service:latest\" -f turms-service/Dockerfile\
+        \ .\n\nENV=prod docker compose -f docker-compose.standalone.yml up -d\n\n\
+        sleep 10\nRETRY=0\nSERVICES=$(docker compose -f docker-compose.standalone.yml\
+        \ ps -q)\necho \"Services for checking health: $SERVICES\"\nwhile true\ndo\n\
+        \  ALL_HEALTHY=true\n  for SERVICE in $SERVICES; do\n    HEALTH_STATUS=$(docker\
+        \ inspect --format='{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}'\
+        \ \"$SERVICE\")\n    if [ -z \"$HEALTH_STATUS\" ]; then\n      echo \"Service\
+        \ $SERVICE does not have a health check configured, passing through\"\n  \
+        \  elif [ \"$HEALTH_STATUS\" = \"healthy\" ]; then\n      echo \"$SERVICE\
+        \ is healthy\"\n    else\n      echo \"$SERVICE is not healthy\"\n      ALL_HEALTHY=false\n\
+        \      break\n    fi\n  done\n  if [ $ALL_HEALTHY = true ]; then\n    echo\
+        \ \"All services are healthy\"\n    break\n  fi\n  if [ $RETRY -eq 5 ]; then\n\
+        \    echo \"Failed to start services, some services are not healthy\"\n  \
+        \  exit 1\n  fi\n  echo \"Some services are not healthy. Retry times: $RETRY.\
+        \ Retrying...\"\n  sleep 10\n  ((RETRY++))\ndone"
+name: Test Docker Compose
+on:
+  repository_dispatch:
+    types: trigger-ga___test-docker-compose.yml

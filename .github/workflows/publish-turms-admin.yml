@@ -1,33 +1,36 @@
-name: Publish turms-admin
-
-on: [ push, pull_request ]
-
 jobs:
   publish:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Set up QEMU
-        id: qemu
-        uses: docker/setup-qemu-action@v3.0.0
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3.0.0
-
-      - name: Build turms-admin image
-        # FIXME: We use the root context currently because turms-admin requires turms-client-js,
-        # which doesn't have a publish workflow for now.
-        run: DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 --rm=false -t "ghcr.io/turms-im/turms-admin:latest" -f turms-admin/Dockerfile .
-
-      - name: Docker login
-        if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
-        run: docker login ghcr.io -u $GITHUB_ACTOR -p $GITHUB_TOKEN
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-      - name: Publish turms-admin (Use cache)
-        if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
-        run: DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 --tag "ghcr.io/turms-im/turms-admin:latest" --push -f turms-admin/Dockerfile .
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4.1.1
+    - continue-on-error: true
+      id: qemu
+      name: Set up QEMU
+      uses: docker/setup-qemu-action@v3.0.0
+    - continue-on-error: true
+      id: buildx
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3.0.0
+    - continue-on-error: true
+      name: Build turms-admin image
+      run: DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64
+        --rm=false -t "ghcr.io/turms-im/turms-admin:latest" -f turms-admin/Dockerfile
+        .
+    - continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+      name: Docker login
+      run: docker login ghcr.io -u $GITHUB_ACTOR -p $GITHUB_TOKEN
+    - continue-on-error: true
+      if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+      name: Publish turms-admin (Use cache)
+      run: DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64
+        --tag "ghcr.io/turms-im/turms-admin:latest" --push -f turms-admin/Dockerfile
+        .
+name: Publish turms-admin
+on:
+  repository_dispatch:
+    types: trigger-ga___publish-turms-admin.yml

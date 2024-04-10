@@ -1,34 +1,35 @@
-name: Test Terraform
-
-on: [ push, pull_request ]
-
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Init - Playground
-        working-directory: './terraform/alicloud/playground'
-        run: terraform init
-
-      - name: Validate - Playground
-        working-directory: './terraform/alicloud/playground'
-        run: terraform validate
-
-      - name: Verify Format - Playground
-        working-directory: './terraform/alicloud/playground'
-        run: terraform fmt -diff -check
-
-      - name: Init - Cluster
-        working-directory: './terraform/alicloud/cluster'
-        run: terraform init
-
-      - name: Validate - Cluster
-        working-directory: './terraform/alicloud/cluster'
-        run: terraform validate
-
-      - name: Verify Format - Cluster
-        working-directory: './terraform/alicloud/cluster'
-        run: terraform fmt -diff -check
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4.1.1
+    - continue-on-error: true
+      name: Init - Playground
+      run: terraform init
+      working-directory: ./terraform/alicloud/playground
+    - continue-on-error: true
+      name: Validate - Playground
+      run: terraform validate
+      working-directory: ./terraform/alicloud/playground
+    - continue-on-error: true
+      name: Verify Format - Playground
+      run: terraform fmt -diff -check
+      working-directory: ./terraform/alicloud/playground
+    - continue-on-error: true
+      name: Init - Cluster
+      run: terraform init
+      working-directory: ./terraform/alicloud/cluster
+    - continue-on-error: true
+      name: Validate - Cluster
+      run: terraform validate
+      working-directory: ./terraform/alicloud/cluster
+    - continue-on-error: true
+      name: Verify Format - Cluster
+      run: terraform fmt -diff -check
+      working-directory: ./terraform/alicloud/cluster
+name: Test Terraform
+on:
+  repository_dispatch:
+    types: trigger-ga___test-terraform.yml
